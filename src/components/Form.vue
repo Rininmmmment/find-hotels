@@ -6,6 +6,9 @@
   const transferTime = ref(60);
   const checkinDate = ref('');
   
+  // ホテル情報を表示するための変数
+  const allHotelData = ref([]);
+  
   // Ramdaを使ってAPIレスポンスから各ホテル情報を取得するメソッド3つ
   const getHotelInfo = R.pipe(
     R.map(R.path([0, 'hotelBasicInfo']))
@@ -66,7 +69,11 @@
               contentNum = 2;  // 2つ目の部屋情報
               roomInfo.push(getRoomInfo(hotel).hotel);
               dailyCharge.push(getDailyCharge(hotel).hotel);
+              
+              // 表示用の配列に追加する
+              allHotelData.value.push({hotelInfo: hotelInfo, roomInfo: roomInfo, dailyCharge: dailyCharge});
             });
+            console.log(allHotelData);
           }).catch((error) => {
             console.error(`エラーが発生しました： ${error.message}`);
           });
@@ -76,7 +83,8 @@
 </script>
 
 <template>
-  <div class="flex justify-center p-5 ">
+  <div class="flex justify-center p-5 flex-row">
+    <!-- 入力フォーム -->
     <div class="w-1/2">
       <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
         最寄り駅
@@ -109,8 +117,25 @@
         <button @click="fetchRakutenTravel" class="btn btn-primary m-5">検索</button>
       </div>
     </div>
+    
+    <!-- 出力 -->
+    
+    <div>
+      <div class="w-1/2">
+        <div v-for="hotelData in allHotelData">
+          <h1 class="text-4xl">{{hotelData["hotelInfo"]["hotelName"]}}</h1>
+          <!--レビュー平均と件数-->
+          <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
+          <!--予約URL-->
+          <!--温泉とか朝食とかアメニティとかの推しポイントが出ればなおよい-->
+          <!--部屋やプランの情報-->
+          <!--価格-->
+          <!--プラン名-->
+          <!--部屋の名前-->
+        </div>
+      </div>
+    </div>
   </div>
-  {{checkinDate}}
 </template>
 
 <style scoped>
