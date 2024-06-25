@@ -95,7 +95,7 @@
           });
       })
         
-    // リクエストパラメータの作成
+    // ホテル検索用リクエストパラメータの作成
     const paramsObject = {
       applicationId: import.meta.env.VITE_RAKUTEN_APP_ID,
       format: 'json',
@@ -104,7 +104,7 @@
       datumType: '1',  // 緯度経度を世界測地系にする
       latitude: latitude.value,
       longitude: longitude.value,
-      searchRadius: '2',
+      searchRadius: '3',
       hits: '10',
       adultNum: '1',
     };
@@ -229,13 +229,13 @@
             <h2 class="card-title">{{hotelData["hotelInfo"]["hotelName"]}}</h2>
             <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
             <div class="card-actions justify-end">
-              <div v-for="i in [0]">
-                <h3>部屋情報</h3>
+              <div v-for="i in [0]" class="w-full h-40 mt-4">
+                <h3 class="text-lg mb-1">部屋情報</h3>
                 <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="">{{hotelData["roomInfo"][i]["planName"]}}</a>
                 <p>{{hotelData["roomInfo"][i]["roomName"]}}</p>
-                <p>{{hotelData['dailyCharge'][i]['total']}}円</p>
+                <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{hotelData['dailyCharge'][i]['total']}}</span></p>
               </div>
-              <button class="btn btn-primary">調べる</button>
+              <button class="btn btn-primary">詳しく調べる</button>
             </div>
           </div>
         </div>
