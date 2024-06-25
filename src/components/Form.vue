@@ -6,6 +6,7 @@
   const transferTime = ref(60);
   const checkinDate = ref('2024-07-19');
   const checkoutDate = ref('2024-07-20');
+  const sort = ref('');
   
   // 駅の緯度経度を入れる変数
   const latitude = ref(0);
@@ -182,17 +183,17 @@
         <input v-model="station" type="text" class="grow" placeholder="○○駅" />
       </label>
     
-      <div class="m-5">
-        <p class="pb-2">最寄駅からの距離</p>
-        <input v-model="transferTime" type="range" min="0" max="120" value="60" class="range" step="30" />
-        <div class="w-full flex justify-between text-xs px-2">
-          <span>1km以内</span>
-          <span></span>
-          <span>60分</span>
-          <span>90分</span>
-          <span>120分</span>
-        </div>
-      </div>
+      <!--<div class="m-5">-->
+      <!--  <p class="pb-2">最寄駅からの距離</p>-->
+      <!--  <input v-model="transferTime" type="range" min="0" max="120" value="60" class="range" step="30" />-->
+      <!--  <div class="w-full flex justify-between text-xs px-2">-->
+      <!--    <span>1km以内</span>-->
+      <!--    <span></span>-->
+      <!--    <span>60分</span>-->
+      <!--    <span>90分</span>-->
+      <!--    <span>120分</span>-->
+      <!--  </div>-->
+      <!--</div>-->
       
       <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
         チェックイン日
@@ -203,6 +204,7 @@
         チェックアウト日
         <input v-model="checkoutDate" type="date" class="grow" placeholder="○○駅" />
       </label>
+ 
       
       <div class="flex justify-center">
         <button @click="fetchRakutenTravel" class="btn btn-primary m-5">検索</button>
@@ -212,36 +214,29 @@
     <!-- 出力 -->
     
     <div>
-      <div class="">
+      <div class="flex flex-row flex-wrap">
         
-        <div  v-for="hotelData in allHotelData" class="card bg-base-100 w-96 shadow-xl">
-          <figure>
+        <div  v-for="hotelData in allHotelData" class="card bg-base-90 w-96 shadow-xl m-5">
+          <figure class="h-30 w-30">
             <img
               :src="hotelData['hotelInfo']['hotelImageUrl']"
-              alt="Shoes" />
+              alt="HotelImage"
+              class="object-contain h-full w-full object-center"
+              style="width: 384px; height: 270px; object-fit: cover;"
+            />
           </figure>
           <div class="card-body">
             <h2 class="card-title">{{hotelData["hotelInfo"]["hotelName"]}}</h2>
-            <p>If a dog chews shoes whose shoes does he choose?</p>
+            <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
             <div class="card-actions justify-end">
-              <div v-for="i in [0, 1]">
-                <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="btn btn-primary">\ {{hotelData['dailyCharge'][i]['total']}}</a>
+              <div v-for="i in [0]">
+                <h3>部屋情報</h3>
+                <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="">{{hotelData["roomInfo"][i]["planName"]}}</a>
+                <p>{{hotelData["roomInfo"][i]["roomName"]}}</p>
+                <p>{{hotelData['dailyCharge'][i]['total']}}円</p>
               </div>
+              <button class="btn btn-primary">調べる</button>
             </div>
-          </div>
-        </div>
-        
-        <div v-for="hotelData in allHotelData">
-          <a :href="hotelData['hotelInfo']['hotelInformationUrl']" class="text-4xl">{{hotelData["hotelInfo"]["hotelName"]}}</a>
-          <!--レビュー平均と件数-->
-          <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
-          <!--予約URL-->
-          <!--温泉とか朝食とかアメニティとかの推しポイントが出ればなおよい-->
-          
-          <!--部屋やプランの情報-->
-          <div v-for="i in [0, 1]">
-            <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="">{{hotelData["roomInfo"][i]["planName"]}} / {{hotelData["roomInfo"][i]["roomName"]}}</a>
-            <p>{{hotelData['dailyCharge'][i]['total']}}</p>
           </div>
         </div>
       </div>
