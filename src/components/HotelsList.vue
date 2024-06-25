@@ -6,6 +6,7 @@
   const transferTime = ref(60);
   const checkinDate = ref('2024-07-19');
   const checkoutDate = ref('2024-07-20');
+  const sort = ref('');
   
   // 駅の緯度経度を入れる変数
   const latitude = ref(0);
@@ -13,7 +14,6 @@
   
   // ホテル情報を表示するための変数
   const allHotelData = ref([]);
-  const hotelDetails = ref([]);
   
   // エラー表示用の変数
   const getLatAndLngError = ref('');
@@ -143,6 +143,7 @@
               // 表示用の配列に追加する
               allHotelData.value.push({hotelInfo: hotelInfo, roomInfo: roomInfo, dailyCharge: dailyCharge});
             });
+            console.log(allHotelData);
           }).catch((error) => {
             fetchRakutenTravelError = 'ホテル情報の取得に失敗しました';
             console.error(`エラーが発生しました： ${error.message}`);
@@ -150,139 +151,95 @@
       })
   }
   
-  // ホテルの詳細を調べて返すメソッド
-  const getDetails = async (hotelName) => {
-    // ホテルの写真を検索
-    const detailParamsObject = {
-      key: import.meta.env.VITE_GOOGLE_KEY,
-      q: hotelName,
-      cx: import.meta.env.VITE_GOOGLE_CX,
-      searchType: 'image',
-      num: '10'
-    };
-    const detailParams = new URLSearchParams(detailParamsObject).toString();
-    const detailUrl = `https://customsearch.googleapis.com/customsearch/v1?${detailParams}`;
-    await fetch(detailUrl)
-      .then((response) => {
-        const status = response.status;
-        return response.json()
-          .then((data) => {
-            // データが取得できなかった場合
-            if (status !== 200) {
-              throw new Error('データの取得に失敗しました。');
-            }
-
-            // データが取得できた場合
-            const seachResults = data.items;
-            seachResults.forEach((searchResult) => {
-              hotelDetails.value.push(searchResult.link);
-            })
-          }).catch((error) => {
-            console.error(`エラーが発生しました： ${error.message}`);
-          });
-      })
-  }
-  
-  getDetails('アパホテル');
-  
-  
 </script>
 
 <template>
-  <!--ナビバー-->
-  <div class="navbar bg-primary shadow">
-    <a class="btn btn-ghost text-xl">daisyUI</a>
-  </div>
-  <!--ここまでナビバー-->
-  
-  <div class="flex">
-    <!--左側のセクション-->
-    <div class="p-10 w-2/3">
-      
-      <!--エラーと入力フォームのコンテナ-->
-      <div class="">  
-        <!--エラー-->
-        <div v-if="getLatAndLngError != '' | fetchRakutenTravelError != ''" role="alert" class="alert alert-error">
-          <div role="alert" class="alert alert-error w-1/2 mx-auto mb-10">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 shrink-0 stroke-current"
-              fill="none"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>
-              {{getLatAndLngError}}<br>
-              {{fetchRakutenTravelError}}
-            </span>
-          </div>
-        </div>
-        
-        <!-- 入力フォーム -->
-        <div class="w-96  mx-auto mb-10">
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            最寄り駅
-            <input v-model="station" type="text" class="grow" placeholder="○○駅" />
-          </label>
+  <div class="p-10 w-2/3">
+    <!--エラー-->
+    <!--<div v-if="getLatAndLngError != '' | fetchRakutenTravelError != ''" role="alert" class="alert alert-error">-->
+    <div role="alert" class="alert alert-error w-1/2">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 shrink-0 stroke-current"
+        fill="none"
+        viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>
+        {{getLatAndLngError}}<br>
+        {{fetchRakutenTravelError}}
+      </span>
+    </div>
     
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            チェックイン日
-            <input v-model="checkinDate" type="date" class="grow" placeholder="○○駅" />
-          </label>
-          
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            チェックアウト日
-            <input v-model="checkoutDate" type="date" class="grow" placeholder="○○駅" />
-          </label>
-     
-          <div class="flex justify-center">
-            <button @click="fetchRakutenTravel" class="btn btn-primary m-5 w-40">検索</button>
-          </div>
-        </div>
-      </div>
-      <!--ここまでエラーと入力フォームのコンテナ-->
+    
+    <!-- 入力フォーム -->
+    <div class="w-96">
+      <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
+        最寄り駅
+        <input v-model="station" type="text" class="grow" placeholder="○○駅" />
+      </label>
+    
+      <!--<div class="m-5">-->
+      <!--  <p class="pb-2">最寄駅からの距離</p>-->
+      <!--  <input v-model="transferTime" type="range" min="0" max="120" value="60" class="range" step="30" />-->
+      <!--  <div class="w-full flex justify-between text-xs px-2">-->
+      <!--    <span>1km以内</span>-->
+      <!--    <span></span>-->
+      <!--    <span>60分</span>-->
+      <!--    <span>90分</span>-->
+      <!--    <span>120分</span>-->
+      <!--  </div>-->
+      <!--</div>-->
       
-      <!-- 出力のコンテナ -->
-      <div>
-        <div class="flex flex-row flex-wrap">
-          <div  v-for="hotelData in allHotelData" class="card bg-base-90 w-96 shadow-xl m-5">
-            <figure class="h-30 w-30">
-              <img
-                :src="hotelData['hotelInfo']['hotelImageUrl']"
-                alt="HotelImage"
-                class="object-contain h-full w-full object-center"
-                style="width: 384px; height: 270px; object-fit: cover;"
-              />
-            </figure>
-            <div class="card-body">
-              <h2 class="card-title">{{hotelData["hotelInfo"]["hotelName"]}}</h2>
-              <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
-              <div class="card-actions justify-end">
-                <div v-for="i in [0]" class="w-full h-40 mt-4">
-                  <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="inline-block text-lg mb-3">{{hotelData["roomInfo"][i]["planName"]}}</a>
-                  <div class="">{{hotelData["roomInfo"][i]["roomName"]}}</div>
-                  <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{hotelData['dailyCharge'][i]['total']}}</span></p>
-                </div>
-                <button @click="getDetails" class="btn btn-primary">詳しく調べる</button>
+      <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
+        チェックイン日
+        <input v-model="checkinDate" type="date" class="grow" placeholder="○○駅" />
+      </label>
+      
+      <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
+        チェックアウト日
+        <input v-model="checkoutDate" type="date" class="grow" placeholder="○○駅" />
+      </label>
+ 
+      
+      <div class="flex justify-center">
+        <button @click="fetchRakutenTravel" class="btn btn-primary m-5">検索</button>
+      </div>
+    </div>
+    
+    <!-- 出力 -->
+    
+    <div>
+      <div class="flex flex-row flex-wrap">
+        
+        <div  v-for="hotelData in allHotelData" class="card bg-base-90 w-96 shadow-xl m-5">
+          <figure class="h-30 w-30">
+            <img
+              :src="hotelData['hotelInfo']['hotelImageUrl']"
+              alt="HotelImage"
+              class="object-contain h-full w-full object-center"
+              style="width: 384px; height: 270px; object-fit: cover;"
+            />
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">{{hotelData["hotelInfo"]["hotelName"]}}</h2>
+            <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
+            <div class="card-actions justify-end">
+              <div v-for="i in [0]" class="w-full h-40 mt-4">
+                <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="inline-block text-lg mb-3">{{hotelData["roomInfo"][i]["planName"]}}</a>
+                <div class="">{{hotelData["roomInfo"][i]["roomName"]}}</div>
+                <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{hotelData['dailyCharge'][i]['total']}}</span></p>
               </div>
+              <button class="btn btn-primary">詳しく調べる</button>
             </div>
           </div>
         </div>
       </div>
-      <!-- ここまで出力のコンテナ -->
-      
     </div>
-    <!--ここまで左側のセクション-->
-    
-    <!--右側のセクション-->
-    <div class="w-1/3">
-      
-    </div>
-    <!--ここまで右側のセクション-->
   </div>
 </template>
 
