@@ -13,30 +13,35 @@
   
   // ホテル情報を表示するための変数
   const allHotelData = ref([]);
-  const hotelDetails = ref([]);
+  
+  // ホテル詳細情報を表示するための変数
+  const searchWords = ['部屋', '朝食', '施設'];
+  const selectedHotelRoomImgUrl = ref([]);
+  const selectedHotelInfo = ref();
   
   // エラー表示用の変数
   const getLatAndLngError = ref('');
   const fetchRakutenTravelError = ref('');
+  const getDetailsError = ref('');
   
   // 駅名から緯度経度を求めるメソッド
   // 例：渋谷駅を調べたいなら"渋谷"を入力
-  const getLatAndLng = () => {
+  const getLatAndLng = async () => {
     // リクエストパラメータの作成
     const paramsObject = {
       method: 'getStations',
-      name: '池袋'
+      name: station.value
     };
     const params = new URLSearchParams(paramsObject).toString();
     const url = `https://express.heartrails.com/api/json?${params}`;
-    fetch(url)
+    await fetch(url)
       .then((response) => {
         const status = response.status;
         return response.json()
           .then((data) => {
             // データが取得できなかった場合
             if (status !== 200) {
-              getLatAndLngError = '駅の緯度・経度を取得できませんでした';
+              getLatAndLngError.value = '駅の緯度・経度を取得できませんでした';
               throw new Error('データの取得に失敗しました。');
             }
 
@@ -44,8 +49,8 @@
             latitude.value = data.response.station[0].y;
             longitude.value = data.response.station[0].x;
           }).catch((error) => {
-            getLatAndLngError = '駅の緯度・経度を取得できませんでした';
-            console.error(`エラーが発生しました： ${error.message}`);
+            getLatAndLngError.value = '駅の緯度・経度を取得できませんでした。\n正しい駅名を入力してください。';
+            // console.error(`エラーが発生しました： ${error.message}`);
           });
       })
   }
@@ -68,33 +73,11 @@
   
   // 入力値からAPIをたたいてホテル情報を返すメソッド
   const fetchRakutenTravel = async () => {
-    // 駅の緯度経度を探す
-    const staParamsObject = {
-      method: 'getStations',
-      name: station.value
-    };
-    const staParams = new URLSearchParams(staParamsObject).toString();
-    const staUrl = `https://express.heartrails.com/api/json?${staParams}`;
-    await fetch(staUrl)
-      .then((response) => {
-        const status = response.status;
-        return response.json()
-          .then((data) => {
-            // データが取得できなかった場合
-            if (status !== 200) {
-              getLatAndLngError = '駅の緯度・経度を取得できませんでした';
-              throw new Error('データの取得に失敗しました。');
-            }
-
-            // データが取得できた場合
-            latitude.value = data.response.station[0].y;
-            longitude.value = data.response.station[0].x;
-          }).catch((error) => {
-            getLatAndLngError = '駅の緯度・経度を取得できませんでした';
-            console.error(`エラーが発生しました： ${error.message}`);
-          });
-      })
-        
+    await getLatAndLng();
+    
+    // リセット
+    allHotelData.value = [];
+    
     // ホテル検索用リクエストパラメータの作成
     const paramsObject = {
       applicationId: import.meta.env.VITE_RAKUTEN_APP_ID,
@@ -105,7 +88,7 @@
       latitude: latitude.value,
       longitude: longitude.value,
       searchRadius: '3',
-      hits: '20',
+      hits: '30',
       adultNum: '1',
     };
     const params = new URLSearchParams(paramsObject).toString();
@@ -119,7 +102,7 @@
           .then((data) => {
             // データが取得できなかった場合
             if (status !== 200) {
-              fetchRakutenTravelError = 'ホテル情報の取得に失敗しました';
+              fetchRakutenTravelError.value = 'ホテル情報の取得に失敗しました';
               throw new Error('データの取得に失敗しました。');
             }
 
@@ -142,68 +125,128 @@
               
               // 表示用の配列に追加する
               allHotelData.value.push({hotelInfo: hotelInfo, roomInfo: roomInfo, dailyCharge: dailyCharge});
+              getLatAndLngError.value = '';
+              fetchRakutenTravelError.value = '';
+              getDetailsError.value = '';
             });
           }).catch((error) => {
-            fetchRakutenTravelError = 'ホテル情報の取得に失敗しました';
-            console.error(`エラーが発生しました： ${error.message}`);
+            fetchRakutenTravelError.value = 'ホテル情報の取得に失敗しました。\n入力値が正しいことを確認してください。';
+            // console.error(`エラーが発生しました： ${error.message}`);
           });
       })
   }
   
   // ホテルの詳細を調べて返すメソッド
-  const getDetails = async (hotelName) => {
-    // ホテルの写真を検索
-    const detailParamsObject = {
-      key: import.meta.env.VITE_GOOGLE_KEY,
-      q: hotelName,
-      cx: import.meta.env.VITE_GOOGLE_CX,
-      searchType: 'image',
-      num: '10'
-    };
-    const detailParams = new URLSearchParams(detailParamsObject).toString();
-    const detailUrl = `https://customsearch.googleapis.com/customsearch/v1?${detailParams}`;
-    await fetch(detailUrl)
-      .then((response) => {
-        const status = response.status;
-        return response.json()
-          .then((data) => {
-            // データが取得できなかった場合
-            if (status !== 200) {
-              throw new Error('データの取得に失敗しました。');
-            }
+  const getDetails = async (hotelIndex) => {
+    // 選択されたホテルの情報を詰める
+    selectedHotelInfo.value = allHotelData.value[hotelIndex];
+    // console.log(selectedHotelInfo);
+  
+    // 中身をリセットする
+    selectedHotelRoomImgUrl.value = [];
+    
+    searchWords.forEach(async (word) => {
+      // ホテルの写真を検索
+      const detailParamsObject = {
+        key: import.meta.env.VITE_GOOGLE_KEY,
+        q: allHotelData.value[hotelIndex]['hotelInfo']['hotelName'] + ' ' + word,
+        cx: import.meta.env.VITE_GOOGLE_CX,
+        searchType: 'image',
+        num: '9'
+      };
+      const detailParams = new URLSearchParams(detailParamsObject).toString();
+      const detailUrl = `https://customsearch.googleapis.com/customsearch/v1?${detailParams}`;
+      await fetch(detailUrl)
+        .then((response) => {
+          const status = response.status;
+          return response.json()
+            .then((data) => {
+              // データが取得できなかった場合
+              if (status !== 200) {
+              getDetailsError.value = 'Googleから画像を取得できませんでした。\n時間をおいてやり直してください。';
+                throw new Error('データの取得に失敗しました。');
+              }
+  
+              // データが取得できた場合
+              const seachResults = data.items;
+              seachResults.forEach((searchResult) => {
+                selectedHotelRoomImgUrl.value.push(searchResult.link);
+              })
 
-            // データが取得できた場合
-            const seachResults = data.items;
-            seachResults.forEach((searchResult) => {
-              hotelDetails.value.push(searchResult.link);
-            })
-          }).catch((error) => {
-            console.error(`エラーが発生しました： ${error.message}`);
-          });
-      })
+              getDetailsError.value = '';
+            }).catch((error) => {
+              getDetailsError.value = 'Googleから画像を取得できませんでした。\n時間をおいてやり直してください。';
+              // console.error(`エラーが発生しました： ${error.message}`);
+            });
+        })
+    })
   }
-  
-  getDetails('アパホテル');
-  
   
 </script>
 
 <template>
   <!--ナビバー-->
   <div class="navbar bg-primary shadow">
-    <a class="btn btn-ghost text-xl">daisyUI</a>
+    <a class="btn btn-ghost text-xl">Find Hotels</a>
   </div>
   <!--ここまでナビバー-->
-  
+    
   <div class="flex">
-    <!--左側のセクション-->
-    <div class="p-10 w-2/3">
-      
+    <!--詳細のセクション-->
+    <div class="w-1/3 p-10" v-if="selectedHotelInfo">
+      <!--ホテル情報コンテナ-->
+      <div class="mb-20">
+        
+        <!--リンクのコンテナ-->
+        <div class="flex justify-center gap-5 mb-7">
+          <a :href="selectedHotelInfo?.hotelInfo?.hotelInformationUrl" target="_blank" class="btn btn-outline btn-secondary">ホテル情報ページ</a>
+          <a :href="selectedHotelInfo?.hotelInfo?.reviewUrl" target="_blank" class="btn btn-outline btn-primary">レビューページ</a>
+          <a :href="selectedHotelInfo?.hotelInfo?.planListUrl" target="_blank" class="btn btn-outline btn-accent">プラン一覧ページ</a>
+        </div>
+        
+        <!--画像のコンテナ-->
+        <div class="divider divider-primary">Hotel Images by Google Search</div>
+        <div v-if="getDetailsError !== ''" role="alert" class="alert alert-error">
+          <div role="alert" class="alert alert-error mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ getDetailsError }}</span>
+          </div>
+        </div>
+        <div class="my-5 flex flex-wrap mx-auto mb-10" style="width: 540px;">
+          <a v-for="url in selectedHotelRoomImgUrl" v-bind:href="url" target="_blank" class="inline-block">
+            <img v-bind:src="url" alt="HotelImage" class="object-fill object-center" style="width: 180px; height: 160px;">
+          </a>
+        </div>
+        
+        <div class="divider divider-primary">Hotel Information</div>
+        <h3 class="text-2xl mb-2">{{ selectedHotelInfo?.hotelInfo?.hotelName }}</h3>
+        <p>{{ selectedHotelInfo?.hotelInfo?.hotelSpecial }}</p>
+        <div class="flex justify-center gap-5">
+          <img :src="selectedHotelInfo?.hotelInfo?.hotelImageUrl" class="my-5" style="width: 200px;">
+          <img :src="selectedHotelInfo?.hotelInfo?.roomImageUrl" class="my-5" style="width: 200px;">
+        </div>
+    
+        <div class="divider divider-primary mt-10">Access</div>
+        <p>{{ selectedHotelInfo?.hotelInfo?.access }}</p>
+        <img :src="selectedHotelInfo?.hotelInfo?.hotelMapImageUrl" class="my-5 inline-box mx-auto" style="width: 400px;">
+    
+        <div class="divider divider-primary mt-10">User Review</div>
+        <div class="chat chat-start">
+          <div class="chat-bubble chat-bubble-primary" v-html="selectedHotelInfo?.hotelInfo?.userReview || 'レビューが見つかりませんでした。リンクから確認してください。'"></div>
+        </div>
+      </div>
+    </div>
+    <!--ここまで詳細のセクション-->
+    
+    <!--右側のセクション-->
+    <div class="p-10 w-2/3 mx-auto">
       <!--エラーと入力フォームのコンテナ-->
       <div class="">  
         <!--エラー-->
-        <div v-if="getLatAndLngError != '' | fetchRakutenTravelError != ''" role="alert" class="alert alert-error">
-          <div role="alert" class="alert alert-error w-1/2 mx-auto mb-10">
+        <div v-if="getLatAndLngError != ''" role="alert" class="alert alert-error mb-5">
+          <div role="alert" class="alert alert-error mx-auto">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-6 w-6 shrink-0 stroke-current"
@@ -216,7 +259,24 @@
                 d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
-              {{getLatAndLngError}}<br>
+              {{getLatAndLngError}}
+            </span>
+          </div>
+        </div>
+        <div v-if="fetchRakutenTravelError != ''" role="alert" class="alert alert-error mb-5">
+          <div role="alert" class="alert alert-error mx-auto">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 shrink-0 stroke-current"
+              fill="none"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
               {{fetchRakutenTravelError}}
             </span>
           </div>
@@ -225,7 +285,7 @@
         <!-- 入力フォーム -->
         <div class="w-96  mx-auto mb-10">
           <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            最寄り駅
+            駅名
             <input v-model="station" type="text" class="grow" placeholder="○○駅" />
           </label>
     
@@ -240,16 +300,16 @@
           </label>
      
           <div class="flex justify-center">
-            <button @click="fetchRakutenTravel" class="btn btn-primary m-5 w-40">検索</button>
+            <button @click="fetchRakutenTravel" class="btn btn-secondary m-5 w-40">検索</button>
           </div>
         </div>
       </div>
       <!--ここまでエラーと入力フォームのコンテナ-->
       
       <!-- 出力のコンテナ -->
-      <div>
-        <div class="flex flex-row flex-wrap">
-          <div  v-for="hotelData in allHotelData" class="card bg-base-90 w-96 shadow-xl m-5">
+      <div class="w-full">
+        <div class="flex flex-row flex-wrap mx-auto">
+          <div v-for="(hotelData, hotelDataNum) in allHotelData" :key="hotelDataNum" class="card relative bg-base-90 w-96 shadow-xl m-5">
             <figure class="h-30 w-30">
               <img
                 :src="hotelData['hotelInfo']['hotelImageUrl']"
@@ -259,16 +319,17 @@
               />
             </figure>
             <div class="card-body">
-              <h2 class="card-title">{{hotelData["hotelInfo"]["hotelName"]}}</h2>
-              <p>レビュー平均{{hotelData["hotelInfo"]["reviewAverage"]}} ( {{hotelData["hotelInfo"]["reviewCount"]}} 件中 )</p>
-              <div class="card-actions justify-end">
-                <div v-for="i in [0]" class="w-full h-40 mt-4">
-                  <a :href="hotelData['roomInfo'][i]['reserveUrl']" class="inline-block text-lg mb-3">{{hotelData["roomInfo"][i]["planName"]}}</a>
-                  <div class="">{{hotelData["roomInfo"][i]["roomName"]}}</div>
-                  <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{hotelData['dailyCharge'][i]['total']}}</span></p>
+              <h2 class="card-title">{{ allHotelData[hotelDataNum]["hotelInfo"]["hotelName"] }}</h2>
+              <span class="">レビュー平均 {{ allHotelData[hotelDataNum]["hotelInfo"]["reviewAverage"] }} ( {{ allHotelData[hotelDataNum]["hotelInfo"]["reviewCount"] }} 件中 )</span>
+              <div class="card-actions justify-end mt-5">
+                <div v-for="i in [0]" class="w-full">
+                  <a :href="allHotelData[hotelDataNum]['roomInfo'][i]['reserveUrl']" class="inline-block text-lg mb-3" target="_blank">{{ allHotelData[hotelDataNum]["roomInfo"][i]["planName"] }}</a>
+                  <div class="text-sm text-gray-400">{{ allHotelData[hotelDataNum]["roomInfo"][i]["roomName"] }}</div>
+                  <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{ allHotelData[hotelDataNum]['dailyCharge'][i]['total'] }}</span></p>
                 </div>
-                <button @click="getDetails" class="btn btn-primary">詳しく調べる</button>
+                <div class="mt-5" style="height: 3rem;"></div>
               </div>
+              <button @click="getDetails(hotelDataNum)" class="btn btn-primary inline-box m-3 absolute bottom-5 right-3">ホテルを詳しく調べる</button>
             </div>
           </div>
         </div>
@@ -277,12 +338,6 @@
       
     </div>
     <!--ここまで左側のセクション-->
-    
-    <!--右側のセクション-->
-    <div class="w-1/3">
-      
-    </div>
-    <!--ここまで右側のセクション-->
   </div>
 </template>
 
