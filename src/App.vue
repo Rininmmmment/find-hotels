@@ -1,10 +1,10 @@
 <script setup>
-import Form from './components/Form.vue'
+import PageContainer from './components/PageContainer.vue'
 </script>
 
 <template>
   <main>
-    <Form />
+    <PageContainer />
   </main>
 </template>
 
