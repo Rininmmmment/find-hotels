@@ -93,7 +93,7 @@
       datumType: '1',  // 緯度経度を世界測地系にする
       latitude: latitude.value,
       longitude: longitude.value,
-      searchRadius: '2',
+      searchRadius: '1',
       hits: '30',
       adultNum: '1',
     };
