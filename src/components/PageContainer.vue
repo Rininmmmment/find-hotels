@@ -1,5 +1,6 @@
 <script setup>
   import { ref } from 'vue';
+  import NaviBar from './NaviBar.vue';
   import Form from './Form.vue';
   
   
@@ -191,9 +192,7 @@
 
 <template>
   <!--ナビバー-->
-  <div class="navbar bg-primary shadow">
-    <a class="btn btn-ghost text-xl">Find Hotels</a>
-  </div>
+  <NaviBar />
   <!--ここまでナビバー-->
     
   <div class="lg:flex">
