@@ -12,9 +12,8 @@
 </script>
 
 <template>
-  {{getLatAndLngError}}
-  <div v-if="getLatAndLngError != ''" role="alert" class="alert alert-error mb-5">
-    <div role="alert" class="alert alert-error mx-auto">
+  <div v-if="getLatAndLngError != ''" role="alert" class="alert alert-error mb-2 p-0">
+    <div role="alert" class="alert alert-error mx-auto p-3">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="h-6 w-6 shrink-0 stroke-current"
@@ -31,8 +30,8 @@
       </span>
     </div>
   </div>
-  <div v-if="fetchRakutenTravelError != ''" role="alert" class="alert alert-error mb-5">
-    <div role="alert" class="alert alert-error mx-auto">
+  <div v-if="fetchRakutenTravelError != ''" role="alert" class="alert alert-error mb-5 p-0">
+    <div role="alert" class="alert alert-error mx-auto p-3">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="h-6 w-6 shrink-0 stroke-current"

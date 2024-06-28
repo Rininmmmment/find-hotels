@@ -30,7 +30,7 @@
               <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">&yen;{{ allHotelData[hotelDataNum]['dailyCharge'][i]['total'] }}</span></p>
             </div>
             <a :href="allHotelData[hotelDataNum]['hotelInfo']['planListUrl']" target="_blank" class="btn btn-outline btn-primary w-full my-4">プラン一覧ページ</a>
-            <button @click="getDetails(hotelDataNum)" class="btn btn-primary inline-box mx-auto w-full">ホテルを詳しく調べる</button>
+            <button @click="$emit('hotelDataNum', hotelDataNum)" class="btn btn-primary inline-box mx-auto w-full">ホテルを詳しく調べる</button>
           </div>
         </div>
       </div>
