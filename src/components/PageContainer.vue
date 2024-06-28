@@ -2,7 +2,7 @@
   import { ref } from 'vue';
   
   // ユーザーから入力を受ける変数
-  const station = ref('新宿三丁目');
+  const station = ref('渋谷');
   const transferTime = ref(60);
   const checkinDate = ref('2024-07-19');
   const checkoutDate = ref('2024-07-20');
@@ -89,7 +89,7 @@
       datumType: '1',  // 緯度経度を世界測地系にする
       latitude: latitude.value,
       longitude: longitude.value,
-      searchRadius: '3',
+      searchRadius: '2',
       hits: '30',
       adultNum: '1',
     };
@@ -304,7 +304,7 @@
     <!--ここまで詳細のセクション-->
     
     <!--右側のセクション-->
-    <div class="py-10 px-0 w-2/3 mx-auto">
+    <div class="py-10 px-0 md:w-2/3 w-11/12 mx-auto">
       <!--エラーと入力フォームのコンテナ-->
       <div class="">  
         <!--エラー-->
@@ -346,24 +346,24 @@
         </div>
         
         <!-- 入力フォーム -->
-        <div class="w-96  mx-auto mb-10">
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            駅名
-            <input v-model="station" type="text" class="grow" placeholder="○○駅" />
+        <div class="md:w-96 w-60 mx-auto mb-10">
+          <label class="input input-bordered flex items-center gap-10 m-2 bg-white">
+            駅
+            <input v-model="station" type="text" class="grow w-full" placeholder="○○駅" />
           </label>
     
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            チェックイン日
-            <input v-model="checkinDate" type="date" class="grow" placeholder="○○駅" />
+          <label class="input input-bordered flex items-center gap-10 m-2 bg-white">
+            in
+            <input v-model="checkinDate" type="date" class="grow w-full" placeholder="○○駅" />
           </label>
           
-          <label class="input input-bordered flex items-center gap-10 m-5 bg-white">
-            チェックアウト日
-            <input v-model="checkoutDate" type="date" class="grow" placeholder="○○駅" />
+          <label class="input input-bordered flex items-center gap-10 m-2 bg-white">
+            out
+            <input v-model="checkoutDate" type="date" class="grow w-full" placeholder="○○駅" />
           </label>
      
           <div class="flex justify-center">
-            <button @click="fetchRakutenTravel" class="btn btn-secondary m-5 w-40">検索</button>
+            <button @click="fetchRakutenTravel" class="btn btn-secondary m-5 md:w-40 w-32">検索</button>
           </div>
         </div>
       </div>
@@ -372,13 +372,13 @@
       <!-- 出力のコンテナ -->
       <div class="w-full">
         <div class="flex flex-row flex-wrap justify-center mx-auto">
-          <div v-for="(hotelData, hotelDataNum) in allHotelData" :key="hotelDataNum" class="card relative bg-base-90 lg:w-5/12 w-11/12 shadow-xl mx-1 my-5">
+          <div v-for="(hotelData, hotelDataNum) in allHotelData" :key="hotelDataNum" class="card relative bg-base-90 lg:w-5/12 w-full shadow-xl mx-1 my-5">
             <figure class="h-30 w-30">
               <img
                 :src="hotelData['hotelInfo']['hotelImageUrl']"
                 alt="HotelImage"
                 class="object-contain h-full w-full object-center"
-                style="width: 384px; height: 270px; object-fit: cover;"
+                style="width: 784px; height: 270px; object-fit: cover;"
               />
             </figure>
             <div class="card-body">
@@ -388,7 +388,7 @@
                 <div v-for="i in [0]" class="w-full">
                   <a :href="allHotelData[hotelDataNum]['roomInfo'][i]['reserveUrl']" class="inline-block text-lg mb-3" target="_blank">{{ allHotelData[hotelDataNum]["roomInfo"][i]["planName"] }}</a>
                   <div class="text-sm text-gray-400">{{ allHotelData[hotelDataNum]["roomInfo"][i]["roomName"] }}</div>
-                  <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">\{{ allHotelData[hotelDataNum]['dailyCharge'][i]['total'] }}</span></p>
+                  <p class="mt-3 text-right">大人1名1泊 <span class="text-4xl font-extrabold ml-5">&yen;{{ allHotelData[hotelDataNum]['dailyCharge'][i]['total'] }}</span></p>
                 </div>
                 <a :href="allHotelData[hotelDataNum]['hotelInfo']['planListUrl']" target="_blank" class="btn btn-outline btn-primary w-full my-4">プラン一覧ページ</a>
                 <button @click="getDetails(hotelDataNum)" class="btn btn-primary inline-box mx-auto w-full">ホテルを詳しく調べる</button>
