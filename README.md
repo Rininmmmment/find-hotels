@@ -17,4 +17,4 @@ https://osushicat.sakura.ne.jp/
 
 ## Demo
 <img width="1440" alt="スクリーンショット 2024-09-16 17 50 00" src="https://github.com/user-attachments/assets/e789345b-95bb-482a-b00f-48f1c2bb2143">
-<img width="1440" alt="スクリーンショット 2024-09-16 17 50 26" src="https://github.com/user-attachments/assets/c5ee276e-747a-454f-b9ac-f1caa0f8e718">
+<img width="1024" alt="スクリーンショット 2024-09-16 17 56 20" src="https://github.com/user-attachments/assets/c3a2a3de-da11-485f-92da-fc59271a60d6">
